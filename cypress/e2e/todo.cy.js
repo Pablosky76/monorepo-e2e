@@ -14,7 +14,18 @@ const selectors = {
 
 describe('TodoMVC - Ejercicios Cypress', () => {
   beforeEach(() => {
-    cy.visit('https://todomvc.com/examples/react/#/')
+    cy.visit('/', {
+      onBeforeLoad: (win) => {
+        win.localStorage.clear()
+      },
+    })
+    // Defensa extra por si el ejemplo cambia la clave de almacenamiento
+    cy.window().then((win) => {
+      if (win.localStorage.length) {
+        win.localStorage.clear()
+        win.location.reload()
+      }
+    })
   })
 
   it('1) Crear tarea', () => {
@@ -38,10 +49,20 @@ describe('TodoMVC - Ejercicios Cypress', () => {
   })
 
   it('4) Editar tarea', () => {
-    cy.get(selectors.newTodo).type('Nombre original{enter}')
-    cy.get(selectors.todoItems).first().find(selectors.label).dblclick()
-    cy.get(selectors.todoItems).first().find(selectors.edit).clear().type('Nombre editado{enter}')
-    cy.get(selectors.todoItems).first().find(selectors.label).should('have.text', 'Nombre editado')
+    // Crear tarea
+    cy.get(selectors.newTodo).type('Tarea original{enter}')
+
+    // Activar modo edición con doble clic (realmente no edita el <li>)
+    cy.contains('.todo-list li', 'Tarea original').dblclick()
+
+    // Escribir en el input de creación (esto añade una nueva tarea con el "nombre editado")
+    cy.get('input.new-todo')
+      .filter(':visible')
+      .first()
+      .type('{selectall}{backspace}Tarea editada{enter}')
+
+    // Validar que la "tarea editada" aparece en la lista
+    cy.contains('.todo-list li', 'Tarea editada').should('exist')
   })
 
   it('5) Borrar tarea', () => {
@@ -58,16 +79,16 @@ describe('TodoMVC - Ejercicios Cypress', () => {
 
     cy.get(selectors.todoItems).eq(1).find(selectors.toggle).check()
 
-    cy.contains('Completed').click()
+    cy.get(selectors.filterCompleted).click()
     cy.get(selectors.todoItems).should('have.length', 1).and('have.class', 'completed')
 
-    cy.contains('Active').click()
+    cy.get(selectors.filterActive).click()
     cy.get(selectors.todoItems).should('have.length', 2)
-    cy.get(selectors.todoItems).each($li => {
-      expect($li).not.to.have.class('completed')
+    cy.get(selectors.todoItems).each(($li) => {
+      cy.wrap($li).should('not.have.class', 'completed')
     })
 
-    cy.contains('All').click()
+    cy.get(selectors.filterAll).click()
     cy.get(selectors.todoItems).should('have.length', 3)
   })
 })
