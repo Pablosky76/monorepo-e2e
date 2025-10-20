@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  newman:
+    image: postman/newman:latest
+    volumes:
+      - ./postman:/etc/newman
+    command: >
+      run /etc/newman/collection.json
+      -r cli
+    depends_on:
+      nginx:
+        condition: service_healthy
+
+  cypress:
+    image: cypress/included:12.5.1
+    volumes:
+      - ./:/e2e
+    working_dir: /e2e
+    environment:
+      - CYPRESS_baseUrl=http://nginx:80
+    command: >
+      sh -lc "ls -la /e2e && ls -la /e2e/cypress &&
+              cypress run --config-file cypress.config.cjs
+              --spec cypress/e2e/spec.cy.js"
+    depends_on:
+      nginx:
+        condition: service_healthy

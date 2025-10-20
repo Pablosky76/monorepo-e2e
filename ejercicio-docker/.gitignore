@@ -1,0 +1,18 @@
+# Node / Cypress
+node_modules/
+cypress/videos/
+cypress/screenshots/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Docker artifacts
+*.log
+*.tmp
+
+# Office temp
+~$*.docx
+
+# VSCode settings
+.vscode/

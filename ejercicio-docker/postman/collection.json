@@ -1,0 +1,28 @@
+{
+  "info": {
+    "name": "Echo demo",
+    "_postman_id": "001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET Echo",
+      "request": {
+        "method": "GET",
+        "url": "http://postman-echo.com/get?foo=bar"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
